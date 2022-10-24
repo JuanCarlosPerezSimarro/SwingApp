@@ -1,11 +1,44 @@
 package org.example;
 
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
 import javax.swing.*;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.awt.*;
+import java.io.File;
+import java.util.TreeMap;
+
+import static javax.swing.SwingUtilities.getRoot;
 
 public class Main extends JFrame {
 
-    public Main() {
+
+    public JTree build(String pathToXml) throws Exception {
+        SAXReader reader = new SAXReader();
+        Document doc = reader.read(pathToXml);
+        return new JTree(build(doc.getRootElement()));
+    }
+
+    public DefaultMutableTreeNode build(org.dom4j.Element e) {
+        DefaultMutableTreeNode result = new DefaultMutableTreeNode(e.getText());
+        for(Object o : e.elements()) {
+            org.dom4j.Element child = (Element) o;
+            result.add(build(child));
+        }
+        return result;
+    }
+
+    public Main() throws Exception {
         super("JSplitPane Example");
 
         JSplitPane principal = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -57,6 +90,8 @@ public class Main extends JFrame {
         pane3.setTopComponent(panel);
         pane3.setBottomComponent(pane4);
         pane3.setDividerLocation(600);
+        JTree tree = build("src/main/java/org/example/Dungeon.xml");
+        pane1.setViewportView(tree);
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 pane1, pane3);
@@ -65,6 +100,10 @@ public class Main extends JFrame {
 
         principal.setTopComponent(toolBar);
         principal.setBottomComponent(splitPane);
+        //tree for each element of the Dungeon.xml
+        getContentPane().add(principal);
+
+
 
         this.getContentPane().add("Center", principal);
         this.setSize(900, 900);
@@ -73,7 +112,7 @@ public class Main extends JFrame {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         new Main();
     }
 }
